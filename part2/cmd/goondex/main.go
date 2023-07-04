@@ -5,7 +5,6 @@ import (
 	"Goondex/part2/pkg/crawler/spider"
 	"flag"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -23,11 +22,14 @@ func main() {
 
 	urls := [2]string{"https://go.dev", "https://github.com/"}
 	s := spider.New()
+	var allDocs []crawler.Document
 	for _, url := range urls {
-		data, err := s.Scan(url, 2)
+		docs, err := s.Scan(url, 2)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println("Ошибка сканирования ", url)
+			continue
 		}
-		printUrls(data, *search)
+		allDocs = append(allDocs, docs...)
 	}
+	printUrls(allDocs, *search)
 }
