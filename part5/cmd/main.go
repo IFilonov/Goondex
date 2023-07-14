@@ -3,7 +3,7 @@ package main
 import (
 	"Goondex/part2/pkg/crawler"
 	"Goondex/part2/pkg/crawler/spider"
-	index "Goondex/part3/pkg"
+	index "Goondex/part5/pkg"
 	"bytes"
 	"encoding/gob"
 	"flag"
