@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Goondex/part2/pkg/crawler"
-	"Goondex/part2/pkg/crawler/spider"
 	index "Goondex/part5/pkg"
+	"Goondex/part5/pkg/crawler"
+	"Goondex/part5/pkg/crawler/spider"
 	"bytes"
 	"encoding/gob"
 	"flag"
@@ -15,50 +15,46 @@ import (
 
 var Urls = []string{"https://go.dev", "https://github.com/"}
 
-func main() {
-	search := flag.String("s", "", "Search word")
-	flag.Parse()
+const Filename = "docs.bin"
 
+func main() {
+	search := getFlag()
 	var allDocs []crawler.Document
 
-	r, err := os.Open("./docs.bin")
+	r, err := os.Open("./" + Filename)
 	if err == nil {
 		allDocs = readDocs(r)
 		r.Close()
 	}
 
-	was_scan := false
 	if len(allDocs) == 0 {
 		scanDocs(&allDocs)
-		was_scan = true
+		setDocsId(&allDocs)
+		sortDocs(&allDocs)
+		writeFile(allDocs)
 	}
-
-	for i := 0; i < len(allDocs); i++ {
-		allDocs[i].ID = i
-	}
-
-	sort.Slice(allDocs, func(i, j int) bool {
-		return allDocs[i].ID < allDocs[j].ID
-	})
 
 	index.IndexDocs(allDocs)
-	indexed_docs := index.Words[*search]
 
+	if search == nil {
+		return
+	}
+
+	indexed_docs := index.Words[*search]
 	for _, index := range indexed_docs {
 		doc := binarySearch(allDocs, index)
 		fmt.Println(doc.Title)
 	}
 
-	if was_scan {
-		w, err := os.Create("./docs.bin")
-		if err != nil {
-			fmt.Println("Ошибка записи файла docs.bin")
-			return
-		}
-		defer w.Close()
-		writeDocs(allDocs, w)
-	}
+}
 
+func getFlag() *string {
+	str := flag.String("s", "", "Search word")
+	flag.Parse()
+	if *str == "" {
+		str = nil
+	}
+	return str
 }
 
 func scanDocs(allDocs *[]crawler.Document) {
@@ -73,6 +69,18 @@ func scanDocs(allDocs *[]crawler.Document) {
 	}
 }
 
+func setDocsId(docs *[]crawler.Document) {
+	for i := 0; i < len(*docs); i++ {
+		(*docs)[i].ID = i
+	}
+}
+
+func sortDocs(docs *[]crawler.Document) {
+	sort.Slice(*docs, func(i, j int) bool {
+		return (*docs)[i].ID < (*docs)[j].ID
+	})
+}
+
 func readDocs(r io.Reader) []crawler.Document {
 	var decodedDocs []crawler.Document
 	d := gob.NewDecoder(r)
@@ -81,6 +89,16 @@ func readDocs(r io.Reader) []crawler.Document {
 		panic(err)
 	}
 	return decodedDocs
+}
+
+func writeFile(docs []crawler.Document) {
+	w, err := os.Create("./" + Filename)
+	if err != nil {
+		fmt.Println("Ошибка записи файла docs.bin")
+		return
+	}
+	defer w.Close()
+	writeDocs(docs, w)
 }
 
 func writeDocs(docs []crawler.Document, w io.Writer) {

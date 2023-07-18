@@ -1,7 +1,7 @@
 package index
 
 import (
-	"Goondex/part2/pkg/crawler"
+	"Goondex/part5/pkg/crawler"
 	"strings"
 
 	"golang.org/x/exp/slices"
