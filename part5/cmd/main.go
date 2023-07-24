@@ -21,19 +21,15 @@ func main() {
 	search := getFlag()
 	var allDocs []crawler.Document
 
-	r, err := os.Open("./" + Filename)
-	if err == nil {
-		allDocs = readDocs(r)
-		r.Close()
-	}
-
-	if len(allDocs) == 0 {
+	_, err := os.Stat("./" + Filename)
+	if err != nil {
 		scanDocs(&allDocs)
 		setDocsId(&allDocs)
 		sortDocs(&allDocs)
 		writeFile(allDocs)
+	} else {
+		allDocs = readFile()
 	}
-
 	index.IndexDocs(allDocs)
 
 	if search == nil {
@@ -81,12 +77,23 @@ func sortDocs(docs *[]crawler.Document) {
 	})
 }
 
+func readFile() []crawler.Document {
+	r, err := os.Open("./" + Filename)
+	if err != nil {
+		fmt.Println("Ошибка открытия файла ", Filename)
+		return nil
+	}
+	docs := readDocs(r)
+	r.Close()
+	return docs
+}
+
 func readDocs(r io.Reader) []crawler.Document {
 	var decodedDocs []crawler.Document
 	d := gob.NewDecoder(r)
 	err := d.Decode(&decodedDocs)
 	if err != nil {
-		panic(err)
+		fmt.Println("Ошибка декодирования данных файла ", Filename)
 	}
 	return decodedDocs
 }
@@ -94,7 +101,7 @@ func readDocs(r io.Reader) []crawler.Document {
 func writeFile(docs []crawler.Document) {
 	w, err := os.Create("./" + Filename)
 	if err != nil {
-		fmt.Println("Ошибка записи файла docs.bin")
+		fmt.Println("Ошибка создания файла ", Filename)
 		return
 	}
 	defer w.Close()
@@ -106,9 +113,13 @@ func writeDocs(docs []crawler.Document, w io.Writer) {
 	e := gob.NewEncoder(b)
 	err := e.Encode(docs)
 	if err != nil {
-		panic(err)
+		fmt.Println("Ошибка кодирования файла ", Filename)
+		return
 	}
-	w.Write(b.Bytes())
+	_, err = w.Write(b.Bytes())
+	if err != nil {
+		fmt.Println("Ошибка записи в файл ", Filename)
+	}
 }
 
 func binarySearch(docs []crawler.Document, value int) crawler.Document {

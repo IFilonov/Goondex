@@ -1,7 +1,7 @@
 package membot
 
 import (
-	"Goondex/part2/pkg/crawler"
+	"Goondex/part5/pkg/crawler"
 )
 
 // Service - имитация служба поискового робота.
