@@ -1,14 +1,15 @@
 package sort_test
 
 import (
+	"math/rand"
+	"reflect"
 	"sort"
 	"testing"
 )
 
 var ints = [...]int{4, 6, 7, 3, 1}
 
-// var float64s = [...]float64{74.3, 59.0, math.Inf(1), 238.2, -784.0, 2.3, math.NaN(), math.NaN(), math.Inf(-1), 9845.768, -959.7485, 905, 7.8, 7.8}
-// var strings = [...]string{"", "Hello", "foo", "bar", "foo", "f00", "%*&^*&^&", "***"}
+const MAX_RAND_LIMIT = 1000
 
 func TestSortIntSlice(t *testing.T) {
 	sort.Ints(ints[:])
@@ -16,13 +17,61 @@ func TestSortIntSlice(t *testing.T) {
 	if ints != expected {
 		t.Errorf("expected '%v' but got '%v'", expected, ints)
 	}
-	// for i, _ := range ints {
-	// 	if i == 0 {
-	// 		continue
-	// 	}
-	// 	if ints[i-1] > ints[i] {
-	// 		t.Errorf("expected '%v' but got '%v'", ints, ints)
-	// 		return
-	// 	}
-	// }
+}
+
+func TestSortStringSlice(t *testing.T) {
+	tests := []struct {
+		name string
+		s    []string
+		want []string
+	}{
+		{
+			name: "Тест 1",
+			s:    []string{"C", "B", "A"},
+			want: []string{"A", "B", "C"},
+		},
+		{
+			name: "Тест 2",
+			s:    []string{"Z", "X", "C"},
+			want: []string{"C", "X", "Z"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sort.Strings(tt.s)
+			if got := tt.s; !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("expected '%v' but got '%v'", got, tt.want)
+			}
+		})
+	}
+}
+
+func generateRandomIntArray() []int {
+	var a []int
+	for i := 0; i < 10000; i++ {
+		a = append(a, rand.Intn(MAX_RAND_LIMIT))
+	}
+	return a
+}
+
+func generateRandomFloatArray() []float64 {
+	var a []float64
+	for i := 0; i < 10000; i++ {
+		a = append(a, rand.Float64())
+	}
+	return a
+}
+
+func BenchmarkIntSort(b *testing.B) {
+	a := generateRandomIntArray()
+	for n := 0; n < b.N; n++ {
+		sort.Ints(a)
+	}
+}
+
+func BenchmarkFloat64Sort(b *testing.B) {
+	a := generateRandomFloatArray()
+	for n := 0; n < b.N; n++ {
+		sort.Float64s(a)
+	}
 }
