@@ -26,16 +26,18 @@ func main() {
 		allDocs, err = readFile()
 		if err != nil {
 			fmt.Printf("Ошибка чтения файла: %v", err)
+			return
 		}
 	}
 
 	if err != nil {
-		scanDocs(&allDocs)
+		allDocs = scanDocs()
 		setDocsId(&allDocs)
 		sortDocs(&allDocs)
 		_, err = writeFile(allDocs)
 		if err != nil {
 			fmt.Printf("Ошибка записи в файл: %v", err)
+			return
 		}
 	}
 
@@ -50,7 +52,6 @@ func main() {
 		doc := binarySearch(allDocs, index)
 		fmt.Println(doc.Title)
 	}
-
 }
 
 func getFlag() *string {
@@ -62,7 +63,8 @@ func getFlag() *string {
 	return str
 }
 
-func scanDocs(allDocs *[]crawler.Document) {
+func scanDocs() []crawler.Document {
+	var allDocs []crawler.Document
 	s := spider.New()
 	for _, url := range Urls {
 		docs, err := s.Scan(url, 2)
@@ -70,8 +72,9 @@ func scanDocs(allDocs *[]crawler.Document) {
 			fmt.Println("Ошибка сканирования ", url)
 			continue
 		}
-		*allDocs = append(*allDocs, docs...)
+		allDocs = append(allDocs, docs...)
 	}
+	return allDocs
 }
 
 func setDocsId(docs *[]crawler.Document) {
@@ -130,7 +133,6 @@ func binarySearch(docs []crawler.Document, value int) crawler.Document {
 	end_index := len(docs) - 1
 
 	for start_index <= end_index {
-
 		median := (start_index + end_index) / 2
 
 		if docs[median].ID < value {
